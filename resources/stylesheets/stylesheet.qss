@@ -1,0 +1,7 @@
+QMainWindow {
+    background-color: black;
+}
+
+QLabel#Scoreboard {
+  color: white;
+}
