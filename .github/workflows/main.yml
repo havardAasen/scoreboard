@@ -1,0 +1,60 @@
+name: Main
+
+on:
+  push:
+
+env:
+  QT_VERSION: 6.5.*   # Latest LTS release
+  BUILD_TYPE: Release
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    name: Build for Ubuntu
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libgl1-mesa-dev qt6-base-dev
+
+      - name: Configure
+        env:
+          CMAKE_BUILD_TYPE: ${{env.BUILD_TYPE}}
+        run: cmake -S . -B build
+
+      - name: Build
+        run: cmake --build build
+
+  windows:
+    runs-on: windows-latest
+    name: Build for Windows
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: ${{ env.QT_VERSION }}
+          host: windows
+          target: desktop
+          cache: true
+          dir: "${{github.workspace}}/qt"
+
+      - name: Configure
+        run: cmake -S . -B build
+
+      - name: Build
+        run: cmake --build build --config ${{env.BUILD_TYPE}}
+
+      - name: Create Windows deployment
+        run: |
+          mkdir ${{github.workspace}}/build/all/
+          cp ${{github.workspace}}/build/src/Release/scoreboard.exe ${{github.workspace}}/build/all/
+          cd ${{github.workspace}}/build/all/
+          windeployqt.exe --release --no-network --compiler-runtime scoreboard.exe
+          ls
+          #Compress-Archive -Path ${{github.workspace}}/build/all/ -DestinationPath ${{github.workspace}}/build/final.zip
+      - uses: actions/upload-artifact@v3
+        with:
+          name: scoreboard
+          path: ${{github.workspace}}/build/all/

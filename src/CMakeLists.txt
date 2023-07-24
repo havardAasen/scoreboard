@@ -40,3 +40,14 @@ install(TARGETS scoreboard
         BUNDLE DESTINATION .
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         )
+
+if (WIN32)
+    add_custom_command(
+            TARGET scoreboard POST_BUILD
+            COMMAND mt.exe -nologo
+                           -manifest ${CMAKE_CURRENT_SOURCE_DIR}/windows.manifest
+                           -outputresource":$<TARGET_FILE:scoreboard>;#1"
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/windows.manifest
+            VERBATIM
+            COMMENT "Adding custom manifest to Windows executable...")
+endif ()
